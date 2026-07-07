@@ -1,0 +1,14 @@
+rarfile
+pyyaml
+
+jupyterlab
+
+torch
+torchvision
+
+scipy
+
+matplotlib
+seaborn
+
+timm

@@ -1,0 +1,7 @@
+random_seed: 42
+data_cache: "./data"
+datasets:
+  tid2013:
+    clean: false
+    urls:
+      tid2013: "https://www.ponomarenko.info/tid2013/tid2013.rar"
