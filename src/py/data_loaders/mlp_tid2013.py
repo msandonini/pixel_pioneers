@@ -1,7 +1,22 @@
+import os.path
+
 from PIL import Image
 from torch.utils.data import Dataset
 
 from pathlib import Path
+
+
+def resolve_path(directory, filename):
+    exact = os.path.join(directory, filename)
+    if os.path.exists(exact):
+        return exact
+    target = filename.lower()
+
+    for f in os.listdir(directory):
+        if f.lower() == target:
+            return os.path.join(directory, f)
+
+    raise FileNotFoundError(f"No file matching {filename} in {directory}")
 
 
 class TID2013Dataset(Dataset):
@@ -26,7 +41,7 @@ class TID2013Dataset(Dataset):
             for line in f:
                 mos, filename = line.strip().split(' ')
 
-                ref = filename[:3].upper() + ".BMP"
+                ref = resolve_path(reference_path, filename[:3].upper() + ".BMP")
 
                 mos = float(mos)
 
