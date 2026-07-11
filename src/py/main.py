@@ -117,7 +117,6 @@ def main():
 
         print(f"[pipeline] {name} - PLCC: {results['PLCC']}, SROCC: {results['SROCC']}")
         
-        out_dirname = "out"
         export_predictions(
             filepath=f"{out_path}/{csv_name}",
             model_name=name,
