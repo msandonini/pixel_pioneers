@@ -124,9 +124,9 @@ def extract_embeddings(conf):
         embeddings["siglip_ref"].append(get_model_embeddings(siglip_processor, siglip_model, ref).cpu())
         embeddings["dino_ref"].append(get_model_embeddings(dino_processor, dino_model, ref).cpu())
 
-        embeddings["clip_dist"].append(get_model_embeddings(clip_model, clip_processor, dist).cpu())
-        embeddings["siglip_dist"].append(get_model_embeddings(siglip_model, siglip_processor, dist).cpu())
-        embeddings["dino_dist"].append(get_model_embeddings(dino_model, dino_processor, dist).cpu())
+        embeddings["clip_dist"].append(get_model_embeddings(clip_processor, clip_model, dist).cpu())
+        embeddings["siglip_dist"].append(get_model_embeddings(siglip_processor, siglip_model, dist).cpu())
+        embeddings["dino_dist"].append(get_model_embeddings(dino_processor, dino_model, dist).cpu())
 
         embeddings["mos"].append(mos)
 
