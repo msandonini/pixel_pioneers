@@ -64,6 +64,7 @@ def extract_embeddings(conf):
     data_cache.download_datasets(conf=conf)
 
     # Load encoders
+    print("[extract_embeddings] load models")
 
     clip_processor = CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')
     clip_model = CLIPModel.from_pretrained('openai/clip-vit-base-patch32').to(DEVICE).eval()
@@ -76,11 +77,15 @@ def extract_embeddings(conf):
 
     # Freeze encoders
 
+    print("[extract_embeddings] freeze models")
+
     for model in [clip_model, siglip_model, dino_model]:
         for p in model.parameters():
             p.requires_grad = False
 
     # Load dataset
+
+    print("[extract_embeddings] load TID2013")
 
     dataset = TID2013Dataset(
         distorted_path="data/tid2013/extracted/distorted_images",
@@ -111,6 +116,8 @@ def extract_embeddings(conf):
         "mos": []
     }
 
+    print("[extract_embeddings] extract embeddings")
+
     for ref, dist, mos in loader:
         embeddings["clip_ref"].append(get_model_embeddings(clip_processor, clip_model, ref).cpu())
         embeddings["siglip_ref"].append(get_model_embeddings(siglip_processor, siglip_model, ref).cpu())
@@ -121,6 +128,8 @@ def extract_embeddings(conf):
         embeddings["dino_dist"].append(get_model_embeddings(dino_model, dino_processor, dist).cpu())
 
         embeddings["mos"].append(mos)
+
+    print("[extract_embeddings] save embeddings")
 
     for key in embeddings:
         embeddings[key] = torch.cat(
@@ -139,6 +148,8 @@ def train(conf):
         print("[train] embeddings path not specified")
         return
 
+    print("[train] load embeddings")
+
     dataset = EmbeddingDataset(conf["embeddings"]["out"])
     loader = DataLoader(
         dataset=dataset,
@@ -146,6 +157,8 @@ def train(conf):
         shuffle=True,
         num_workers=2
     )
+
+    print("[train] init MLPs and optimizator")
 
     fusion = FusionMLP(
         input_dims = [768, 768, 768],
@@ -165,6 +178,8 @@ def train(conf):
     )
 
     dt = f"datetime.now()".replace(":", ".")
+
+    print("[train] train loop")
 
     for epoch in range(EPOCHS):
         fusion.train()
