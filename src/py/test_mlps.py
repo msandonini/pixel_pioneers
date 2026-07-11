@@ -44,6 +44,12 @@ def get_model_embeddings(processor, model, images):
     return embeddings
 
 
+def pil_collate(batch):
+    refs, dists, mos = zip(*batch)
+    mos = torch.tensor(mos, dtype=torch.float32)
+    return list(refs), list(dists), mos
+
+
 def extract_embeddings(conf):
     if not ("embeddings" in conf and "out" in conf["embeddings"]):
         print("[extract_embeddings] embeddings path not specified")
@@ -86,8 +92,8 @@ def extract_embeddings(conf):
         dataset=dataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=4,
-        pin_memory=True
+        num_workers=2,
+        collate_fn=pil_collate
     )
 
     # Extraction loop
@@ -138,8 +144,7 @@ def train(conf):
         dataset=dataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=4,
-        pin_memory=True
+        num_workers=2
     )
 
     fusion = FusionMLP(

@@ -9,7 +9,7 @@ class EmbeddingDataset(Dataset):
         self.data = torch.load(path)
 
     def __len__(self):
-        return len(self.files)
+        return len(self.data)
 
     def __getitem__(self, idx):
         return {
