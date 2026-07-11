@@ -36,6 +36,7 @@ def get_model_embeddings(processor, model, images):
 
     if hasattr(model, "get_image_features"):
         embeddings = model.get_image_features(**inputs)
+        embeddings = embeddings.pooler_output if hasattr(embeddings, "pooler_output") else embeddings
     else:
         embeddings = model(**inputs).pooler_output
 
