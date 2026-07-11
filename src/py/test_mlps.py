@@ -17,6 +17,7 @@ from pipeline import data_cache
 
 import random
 from pathlib import Path
+from datetime import datetime
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -159,6 +160,8 @@ def train(conf):
         lr = LR
     )
 
+    dt = f"datetime.now()".replace(":", ".")
+
     for epoch in range(EPOCHS):
         fusion.train()
         metric.train()
@@ -196,10 +199,22 @@ def train(conf):
 
             epoch_loss += loss.item()
 
+        loss_fmt = f"{epoch_loss/len(loader):.4f}"
         print(
             f"Epoch {epoch+1}"
-            f"Loss = {epoch_loss/len(loader):.4f}"
+            f"Loss = {loss_fmt}"
         )
+
+        checkpoint = {
+            "epoch": epoch,
+            "fusion_state_dict": fusion.state_dict(),
+            "metric_state_dict": metric.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": epoch_loss,
+        }
+
+        torch.save(checkpoint, f"checkpoints/{dt}/model_{epoch}_loss_{loss_fmt}.pt")
+
 
 
 
