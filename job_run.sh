@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=project_cvcs
-#SBATCH --partition=all-serial
+#SBATCH --partition=all_serial
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
 #SBATCH --time=04:00:00
