@@ -1,4 +1,4 @@
-from PIL.Image import Image
+from PIL import Image
 from torch.utils.data import Dataset
 
 from pathlib import Path

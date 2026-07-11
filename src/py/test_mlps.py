@@ -29,7 +29,6 @@ LR = 1e-4
 
 @torch.no_grad()
 def get_model_embeddings(processor, model, images):
-    # CLIP
     inputs = processor(
         images=list(images),
         return_tensors="pt"
@@ -60,8 +59,8 @@ def extract_embeddings(conf):
 
     # Load encoders
 
-    clip_processor = CLIPProcessor.from_pretrained('clip-vit-base-patch16-224')
-    clip_model = CLIPModel.from_pretrained('clip-vit-base-patch16-224').to(DEVICE).eval()
+    clip_processor = CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')
+    clip_model = CLIPModel.from_pretrained('openai/clip-vit-base-patch32').to(DEVICE).eval()
 
     siglip_processor = AutoProcessor.from_pretrained('google/siglip2-base-patch16-224')
     siglip_model = AutoModel.from_pretrained('google/siglip2-base-patch16-224').to(DEVICE).eval()
