@@ -1,4 +1,7 @@
 random_seed: 42
+models:
+  clip:
+    batch_size: 16
 data_cache: "./data"
 datasets:
   tid2013:

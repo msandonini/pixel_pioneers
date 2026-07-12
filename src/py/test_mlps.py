@@ -117,18 +117,30 @@ def extract_embeddings(conf):
         "mos": []
     }
 
-    print("[extract_embeddings] extract embeddings")
+    print("[extract_embeddings] extraction loop")
 
+    n = 0
     for ref, dist, mos in loader:
+        print(f"[extract_embeddings] loop n={n}")
+
+        print(" - ref")
+        print(" |-> clip_ref")
         embeddings["clip_ref"].append(get_model_embeddings(clip_processor, clip_model, ref).cpu())
+        print(" |-> siglip_ref")
         embeddings["siglip_ref"].append(get_model_embeddings(siglip_processor, siglip_model, ref).cpu())
+        print(" |-> dino_ref")
         embeddings["dino_ref"].append(get_model_embeddings(dino_processor, dino_model, ref).cpu())
 
+        print(" - dist")
+        print(" |-> clip_dist")
         embeddings["clip_dist"].append(get_model_embeddings(clip_processor, clip_model, dist).cpu())
+        print(" |-> siglip_dist")
         embeddings["siglip_dist"].append(get_model_embeddings(siglip_processor, siglip_model, dist).cpu())
+        print(" |-> dino_dist")
         embeddings["dino_dist"].append(get_model_embeddings(dino_processor, dino_model, dist).cpu())
 
         embeddings["mos"].append(mos)
+        n+=1
 
     print("[extract_embeddings] save embeddings")
 

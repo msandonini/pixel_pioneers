@@ -55,6 +55,11 @@ def download_dataset(cache_root: str | Path,
     for key, url in data_urls.items():
         archive_name = url.split("/")[-1]
         archive_path = archives_dir / archive_name
+
+        if (dataset_root / "extracted").exists():
+            print(f"[download_datasets] dataset {dataset_name} already extracted - skip")
+            continue
+
         download_file(url, archive_path)
         extract_archive(archive_path, dataset_root / "extracted")
 
