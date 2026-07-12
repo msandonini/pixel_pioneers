@@ -1,3 +1,4 @@
+import os.path
 import random
 
 import torch.cuda
@@ -8,13 +9,15 @@ from data_loaders.mlp_tid2013 import TID2013Dataset
 from embeddings.extraction import get_model_embeddings, pil_collate
 from pipeline import config, data_cache
 
+from pathlib import Path
+
 
 def extract_clip_embeddings(conf):
     if not ("embeddings" in conf and "out" in conf["embeddings"]):
         print("[extract_embeddings] embeddings path not specified")
         return
 
-    emb_out = conf["embeddings"]["out"]
+    emb_out = Path(conf["embeddings"]["out"])
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -80,7 +83,10 @@ def extract_clip_embeddings(conf):
             dim = 0
         )
 
-    torch.save(embeddings, emb_out)
+
+
+    emb_out.mkdir(parents=True, exist_ok=True)
+    torch.save(embeddings, emb_out / "CLIP")
     print("[CLIP] extraction done")
 
 
