@@ -48,7 +48,6 @@ def extract_clip_embeddings(conf):
         dataset=dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=2,
         collate_fn=pil_collate
     )
 
