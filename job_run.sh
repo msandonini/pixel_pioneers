@@ -22,4 +22,4 @@ source "$VENV_DIR/bin/activate"
 pip install --upgrade pip
 pip install -r "$PROJ_DIR/requirements.txt"
 
-python "$PROJ_DIR/src/py/test_mlps.py"
+python "$PROJ_DIR/src/py/extraction_main.py"
