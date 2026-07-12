@@ -10,6 +10,9 @@ import torch.nn.functional as F
 
 from data_loaders.embedding_data import EmbeddingDataset
 from data_loaders.mlp_tid2013 import TID2013Dataset
+from embeddings.models.clip import extract_clip_embeddings
+from embeddings.models.dinov2 import extract_dinov2_embeddings
+from embeddings.models.siglip2 import extract_siglip2_embeddings
 from fusion_mlp.mlp import FusionMLP
 from metric_mlp.mlp import MetricMLP
 from pipeline import config
@@ -51,111 +54,6 @@ def pil_collate(batch):
     return list(refs), list(dists), mos
 
 
-def extract_embeddings(conf):
-    if not ("embeddings" in conf and "out" in conf["embeddings"]):
-        print("[extract_embeddings] embeddings path not specified")
-        return
-
-    emb_out = conf["embeddings"]["out"]
-
-    if Path(emb_out).exists():
-        print("[extract_embeddings] embeddings already existing, no need for extraction")
-        return
-
-    data_cache.download_datasets(conf=conf)
-
-    # Load encoders
-    print("[extract_embeddings] load models")
-
-    clip_processor = CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')
-    clip_model = CLIPModel.from_pretrained('openai/clip-vit-base-patch32').to(DEVICE).eval()
-
-    siglip_processor = AutoProcessor.from_pretrained('google/siglip2-base-patch16-224')
-    siglip_model = AutoModel.from_pretrained('google/siglip2-base-patch16-224').to(DEVICE).eval()
-
-    dino_processor = AutoProcessor.from_pretrained('facebook/dinov2-base')
-    dino_model = AutoModel.from_pretrained('facebook/dinov2-base').to(DEVICE).eval()
-
-    # Freeze encoders
-
-    print("[extract_embeddings] freeze models")
-
-    for model in [clip_model, siglip_model, dino_model]:
-        for p in model.parameters():
-            p.requires_grad = False
-
-    # Load dataset
-
-    print("[extract_embeddings] load TID2013")
-
-    dataset = TID2013Dataset(
-        distorted_path="data/tid2013/extracted/distorted_images",
-        reference_path="data/tid2013/extracted/reference_images",
-        index_path="data/tid2013/extracted/mos_with_names.txt",
-    )
-
-    loader = DataLoader(
-        dataset=dataset,
-        batch_size=BATCH_SIZE,
-        shuffle=True,
-        num_workers=2,
-        collate_fn=pil_collate
-    )
-
-    # Extraction loop
-
-    embeddings = {
-        "clip_ref": [],
-        "clip_dist": [],
-
-        "siglip_ref": [],
-        "siglip_dist": [],
-
-        "dino_ref": [],
-        "dino_dist": [],
-
-        "mos": []
-    }
-
-    print("[extract_embeddings] extraction loop")
-
-    n = 0
-    for ref, dist, mos in loader:
-        print(f"[extract_embeddings] loop n={n}")
-
-        print(" - ref")
-        print(" |-> clip_ref")
-        embeddings["clip_ref"].append(get_model_embeddings(clip_processor, clip_model, ref).cpu())
-        print(" |-> siglip_ref")
-        embeddings["siglip_ref"].append(get_model_embeddings(siglip_processor, siglip_model, ref).cpu())
-        print(" |-> dino_ref")
-        embeddings["dino_ref"].append(get_model_embeddings(dino_processor, dino_model, ref).cpu())
-
-        print(" - dist")
-        print(" |-> clip_dist")
-        embeddings["clip_dist"].append(get_model_embeddings(clip_processor, clip_model, dist).cpu())
-        print(" |-> siglip_dist")
-        embeddings["siglip_dist"].append(get_model_embeddings(siglip_processor, siglip_model, dist).cpu())
-        print(" |-> dino_dist")
-        embeddings["dino_dist"].append(get_model_embeddings(dino_processor, dino_model, dist).cpu())
-
-        embeddings["mos"].append(mos)
-        n+=1
-
-    print("[extract_embeddings] save embeddings")
-
-    for key in embeddings:
-        embeddings[key] = torch.cat(
-            embeddings[key],
-            dim = 0
-        )
-
-    torch.save(
-        embeddings,
-        emb_out
-    )
-
-
 def train(conf):
     if not ("embeddings" in conf and "out" in conf["embeddings"]):
         print("[train] embeddings path not specified")
@@ -168,7 +66,6 @@ def train(conf):
         dataset=dataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=2
     )
 
     print("[train] init MLPs and optimizator")
@@ -248,16 +145,16 @@ def train(conf):
         torch.save(checkpoint, f"checkpoints/{dt}/model_{epoch}_loss_{loss_fmt}.pt")
 
 
-
-
-
 def main():
     conf = config.parse_args()
 
     if "random_seed" in conf:
         random.seed(conf["random_seed"])
 
-    extract_embeddings(conf)
+    extract_clip_embeddings(conf)
+    extract_siglip2_embeddings(conf)
+    extract_dinov2_embeddings(conf)
+
     train(conf)
 
 

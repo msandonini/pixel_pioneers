@@ -1,4 +1,6 @@
-from embeddings.models import clip
+from embeddings.models import clip, siglip2, dinov2
 
 if __name__ == '__main__':
     clip.main()
+    siglip2.main()
+    dinov2.main()

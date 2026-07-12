@@ -1,43 +1,42 @@
-import os.path
+import os
 import random
+from pathlib import Path
 
 import torch.cuda
 from torch.utils.data import DataLoader
-from transformers import CLIPProcessor, CLIPModel
+from transformers import AutoProcessor, AutoModel
 
 from data_loaders.mlp_tid2013 import TID2013Dataset
 from embeddings.extraction import get_model_embeddings, pil_collate
 from pipeline import config, data_cache
 
-from pathlib import Path
 
-
-def extract_clip_embeddings(conf):
+def extract_dinov2_embeddings(conf):
     if not ("embeddings" in conf and "out" in conf["embeddings"]):
         print("[extract_embeddings] embeddings path not specified")
         return
 
     emb_out = Path(conf["embeddings"]["out"])
-    if os.path.exists(emb_out / "CLIP"):
+    if os.path.exists(emb_out / "DINOv2"):
         print("[extract_embeddings] CLIP embeddings already exist - skip")
         return
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print("[CLIP] download datasets")
+    print("[DINOv2] download datasets")
 
     data_cache.download_datasets(conf=conf)
 
-    print("[CLIP] download model")
+    print("[DINOv2] download model")
 
-    clip_processor = CLIPProcessor.from_pretrained('openai/clip-vit-base-patch32')
-    clip_model = CLIPModel.from_pretrained('openai/clip-vit-base-patch32').to(device).eval()
+    dino_processor = AutoProcessor.from_pretrained('facebook/dinov2-base')
+    dino_model = AutoModel.from_pretrained('facebook/dinov2-base').to(device).eval()
 
-    print("[CLIP] freeze encoder")
-    for p in clip_model.parameters():
+    print("[DINOv2] freeze encoder")
+    for p in dino_model.parameters():
         p.requires_grad = False
 
-    print("[CLIP] load TID2013")
+    print("[DINOv2] load TID2013")
 
     dataset = TID2013Dataset(
         distorted_path="data/tid2013/extracted/distorted_images",
@@ -45,8 +44,8 @@ def extract_clip_embeddings(conf):
         index_path="data/tid2013/extracted/mos_with_names.txt",
     )
 
-    if "models" in conf and "clip" in conf["models"] and "batch_size" in conf["models"]["clip"]:
-        batch_size = conf["models"]["clip"]["batch_size"]
+    if "models" in conf and "dinov2" in conf["models"] and "batch_size" in conf["models"]["dinov2"]:
+        batch_size = conf["models"]["dinov2"]["batch_size"]
     else:
         batch_size = 16
 
@@ -57,7 +56,7 @@ def extract_clip_embeddings(conf):
         collate_fn=pil_collate
     )
 
-    print("[CLIP] extract embeddings")
+    print("[DINOv2] extract embeddings")
 
     embeddings = {
         "ref": [],
@@ -67,28 +66,30 @@ def extract_clip_embeddings(conf):
 
     n = 0
     for ref, dist, mos in loader:
-        print(f"[CLIP] loop n={n}")
+        print(f"[DINOv2] loop n={n}")
 
         print(f" -> ref")
-        embeddings["ref"].append(get_model_embeddings(clip_processor, clip_model, ref, device).cpu())
+        embeddings["ref"].append(get_model_embeddings(dino_processor, dino_model, ref, device).cpu())
 
         print(f" -> dist")
-        embeddings["dist"].append(get_model_embeddings(clip_processor, clip_model, dist, device).cpu())
+        embeddings["dist"].append(get_model_embeddings(dino_processor, dino_model, dist, device).cpu())
 
         embeddings["mos"].append(mos)
 
         n += 1
 
-    print("[CLIP] save embeddings")
+    print("[DINOv2] save embeddings")
     for key in embeddings:
         embeddings[key] = torch.cat(
             embeddings[key],
             dim = 0
         )
 
+
+
     emb_out.mkdir(parents=True, exist_ok=True)
-    torch.save(embeddings, emb_out / "CLIP")
-    print("[CLIP] extraction done")
+    torch.save(embeddings, emb_out / "DINOv2")
+    print("[DINOv2] extraction done")
 
 
 def main():
@@ -97,7 +98,7 @@ def main():
     if "random_seed" in conf:
         random.seed(conf["random_seed"])
 
-    extract_clip_embeddings(conf)
+    extract_dinov2_embeddings(conf)
 
 
 if __name__ == '__main__':
