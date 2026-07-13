@@ -1,6 +1,6 @@
 import torch
 
-data = torch.load("data/embeddings/clip.pt")
+data = torch.load("data/embeddings/clip.pt", weights_only=False)
 
 print("ref_path - type:", type(data["ref_path"]), "content: ", data["ref_path"])
 print("dist_path - type:", type(data["dist_path"]), "content: ", data["dist_path"])
