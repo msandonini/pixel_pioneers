@@ -31,9 +31,9 @@ else:
     print(f"CLIP & DINOv2 close: {torch.allclose(clip_emb['mos'], dino_emb['mos'])}")
     print(f"SigLIP2 & DINOv2 close: {torch.allclose(siglip_emb['mos'], dino_emb['mos'])}")
 
-    diff = (clip_emb - siglip_emb).abs()
+    diff = (clip_emb['mos'] - siglip_emb['mos']).abs()
     print(f"CLIP - SigLIP2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
-    diff = (clip_emb - dino_emb).abs()
+    diff = (clip_emb['mos'] - dino_emb['mos']).abs()
     print(f"CLIP - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
-    diff = (siglip_emb - dino_emb).abs()
+    diff = (siglip_emb['mos'] - dino_emb['mos']).abs()
     print(f"SigLIP2 - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
