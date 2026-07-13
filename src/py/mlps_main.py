@@ -92,24 +92,28 @@ def train(conf):
     print("[train] train loop")
 
     for epoch in range(EPOCHS):
+        f"Epoch {epoch + 1}"
         fusion.train()
         metric.train()
 
         epoch_loss = 0
 
         for sample in loader:
+            print(" -> Fusion: ref")
             ref = fusion([
                 sample["clip_ref"],
                 sample["siglip_ref"],
                 sample["dino_ref"]
             ])
 
+            print(" -> Fusion: dist")
             dist = fusion([
                 sample["clip_dist"],
                 sample["siglip_dist"],
                 sample["dino_dist"]
             ])
 
+            print(" -> Metric")
             pred = metric(
                 dist,
                 ref
@@ -120,19 +124,19 @@ def train(conf):
                 sample["mos"]
             )
 
+            print(" -> Optim")
             optimizer.zero_grad()
 
+            print(" -> Backward")
             loss.backward()
 
+            print(" -> Step")
             optimizer.step()
 
             epoch_loss += loss.item()
 
         loss_fmt = f"{epoch_loss/len(loader):.4f}"
-        print(
-            f"Epoch {epoch+1}"
-            f"Loss = {loss_fmt}"
-        )
+        print(f"Loss = {loss_fmt}")
 
         checkpoint = {
             "epoch": epoch,
