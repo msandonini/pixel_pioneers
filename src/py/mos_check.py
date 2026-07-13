@@ -37,3 +37,10 @@ else:
     print(f"CLIP - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
     diff = (siglip_emb['mos'] - dino_emb['mos']).abs()
     print(f"SigLIP2 - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
+
+    clip_sorted, _ = torch.sort(clip_emb['mos'])
+    siglip_sorted, _ = torch.sort(siglip_emb['mos'])
+    dino_sorted, _ = torch.sort(dino_emb['mos'])
+
+    print("CLIP & SigLIP2 sorted close:", torch.allclose(clip_sorted, siglip_sorted))
+    print("CLIP & DINOv2 sorted close:", torch.allclose(clip_sorted, dino_sorted))
