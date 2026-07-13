@@ -19,12 +19,21 @@ if not ("embeddings" in conf and "out" in conf["embeddings"]):
 else:
     path = Path(conf["embeddings"]["out"])
 
-    for child in path.iterdir():
-        if not child.is_file():
-            continue
+    clip_emb = torch.load(path / "clip.pt")
+    siglip_emb = torch.load(path / "siglip.pt")
+    dino_emb = torch.load(path / "dino.pt")
 
-        model_name = child.name
-        model_data = torch.load(path / child.name)
+    print(f"CLIP - mos shape: {clip_emb['mos'].shape}, dtype: {clip_emb['mos'].dtype}")
+    print(f"SigLIP2 - mos shape: {siglip_emb['mos'].shape}, dtype: {siglip_emb['mos'].dtype}")
+    print(f"DINOv2 - mos shape: {dino_emb['mos'].shape}, dtype: {dino_emb['mos'].dtype}")
 
-        print(model_name, "mos shape:", model_data["mos"].shape, "dtype:", model_data["mos"].dtype)
-        print(model_name, "has NaN:", torch.isnan(model_data["mos"]).any().item())
+    print(f"CLIP & SigLIP2 close: {torch.allclose(clip_emb['mos'], siglip_emb['mos'])}")
+    print(f"CLIP & DINOv2 close: {torch.allclose(clip_emb['mos'], dino_emb['mos'])}")
+    print(f"SigLIP2 & DINOv2 close: {torch.allclose(siglip_emb['mos'], dino_emb['mos'])}")
+
+    diff = (clip_emb - siglip_emb).abs()
+    print(f"CLIP - SigLIP2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
+    diff = (clip_emb - dino_emb).abs()
+    print(f"CLIP - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
+    diff = (siglip_emb - dino_emb).abs()
+    print(f"SigLIP2 - DINOv2 max diff: {diff.max().item()} at index: {diff.argmax().item()}")
