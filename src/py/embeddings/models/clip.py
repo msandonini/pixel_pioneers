@@ -18,7 +18,7 @@ def extract_clip_embeddings(conf):
         return
 
     emb_out = Path(conf["embeddings"]["out"])
-    if os.path.exists(emb_out / "CLIP"):
+    if os.path.exists(emb_out / "clip.pt"):
         print("[extract_embeddings] CLIP embeddings already exist - skip")
         return
 
@@ -87,7 +87,7 @@ def extract_clip_embeddings(conf):
         )
 
     emb_out.mkdir(parents=True, exist_ok=True)
-    torch.save(embeddings, emb_out / "CLIP")
+    torch.save(embeddings, emb_out / "clip.pt")
     print("[CLIP] extraction done")
 
 

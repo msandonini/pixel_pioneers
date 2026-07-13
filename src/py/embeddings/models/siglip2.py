@@ -17,7 +17,7 @@ def extract_siglip2_embeddings(conf):
         return
 
     emb_out = Path(conf["embeddings"]["out"])
-    if os.path.exists(emb_out / "SigLIP2"):
+    if os.path.exists(emb_out / "siglip.pt"):
         print("[extract_embeddings] CLIP embeddings already exist - skip")
         return
 
@@ -88,7 +88,7 @@ def extract_siglip2_embeddings(conf):
 
 
     emb_out.mkdir(parents=True, exist_ok=True)
-    torch.save(embeddings, emb_out / "SigLIP2")
+    torch.save(embeddings, emb_out / "siglip.pt")
     print("[SigLIP2] extraction done")
 
 

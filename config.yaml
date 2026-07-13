@@ -9,4 +9,4 @@ datasets:
     urls:
       tid2013: "https://www.ponomarenko.info/tid2013/tid2013.rar"
 embeddings:
-  out: "./data/embeddings/embeddings.pt"
+  out: "./data/embeddings"

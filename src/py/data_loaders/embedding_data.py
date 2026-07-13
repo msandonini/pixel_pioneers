@@ -6,7 +6,27 @@ from torch.utils.data import Dataset
 
 class EmbeddingDataset(Dataset):
     def __init__(self, path: str | Path):
-        self.data = torch.load(path)
+        path = Path(path)
+
+        self.data = {}
+        mos = None
+
+        for child in path.iterdir():
+            if not child.is_file():
+                continue
+
+            model_name = child.name.lower()
+            model_data = torch.load(path / child.name)
+
+            self.data[f"{model_name}_ref"] = model_data["ref"]
+            self.data[f"{model_name}_dist"] = model_data["dist"]
+
+            if mos is None:
+                mos = model_data["mos"]
+            else:
+                assert torch.equal(mos, model_data["mos"]), f"mos mismatch between model {model_name} and previous one"
+
+            self.data["mos"] = mos
 
     def __len__(self):
         return len(self.data)

@@ -17,7 +17,7 @@ def extract_dinov2_embeddings(conf):
         return
 
     emb_out = Path(conf["embeddings"]["out"])
-    if os.path.exists(emb_out / "DINOv2"):
+    if os.path.exists(emb_out / "dino.pt"):
         print("[extract_embeddings] CLIP embeddings already exist - skip")
         return
 
@@ -88,7 +88,7 @@ def extract_dinov2_embeddings(conf):
 
 
     emb_out.mkdir(parents=True, exist_ok=True)
-    torch.save(embeddings, emb_out / "DINOv2")
+    torch.save(embeddings, emb_out / "dino.pt")
     print("[DINOv2] extraction done")
 
 
