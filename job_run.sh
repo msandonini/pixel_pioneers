@@ -22,4 +22,4 @@ source "$VENV_DIR/bin/activate"
 pip install --upgrade pip
 pip install -r "$PROJ_DIR/requirements.txt"
 
-python "$PROJ_DIR/src/py/mlps_main.py"
+python "$PROJ_DIR/src/py/mos_check.py"
