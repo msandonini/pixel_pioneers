@@ -11,36 +11,48 @@ class EmbeddingDataset(Dataset):
         self.data = {}
         mos = None
 
-        for child in path.iterdir():
-            if not child.is_file():
+        files = sorted(child for child in path.iterdir() if child.is_file())
+
+        if not files:
+            raise FileNotFoundError(f"No files found in path {path}")
+
+        raw = {}
+        for f in files:
+            model_name = f.stem.lower()
+            raw[model_name] = torch.load(f)
+
+        # Use first model as canonical sample order
+        canon_name = next(iter(raw))
+        canon_keys = list(zip(raw[canon_name]["ref_path"], raw[canon_name]["dist_path"]))
+
+        self.data = {
+            "mos": raw[canon_name]["mos"],
+        }
+
+        for model_name, model_data in raw.items():
+            if model_name == canon_name:
+                self.data[f"{model_name}_ref"] = model_data["ref"]
+                self.data[f"{model_name}_dist"] = model_data["dist"]
                 continue
 
-            model_name = child.name.lower()
-            model_data = torch.load(path / child.name)
+            keys = list(zip(model_data["ref_path"], model_data["dist_path"]))
+            key_to_idx = {key: i for i, key in enumerate(keys)}
 
-            self.data[f"{model_name}_ref"] = model_data["ref"]
-            self.data[f"{model_name}_dist"] = model_data["dist"]
+            missing = [k for k in canon_keys if k not in key_to_idx]
+            if missing:
+                raise ValueError(f"{model_name} is missing {len(missing)} samples present in {canon_name}")
 
-            if mos is None:
-                mos = model_data["mos"]
-            else:
-                assert torch.equal(mos, model_data["mos"]), f"mos mismatch between model {model_name} and previous one"
+            order = torch.tensor([key_to_idx[k] for k in canon_keys], dtype=torch.long)
 
-            self.data["mos"] = mos
+            self.data[f"{model_name}_ref"] = model_data["ref"][order]
+            self.data[f"{model_name}_dist"] = model_data["dist"][order]
+
+            aligned_mos = model_data["mos"][order]
+            assert torch.allclose(self.data["mos"], aligned_mos)
+
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return {
-            "clip_ref": self.data["clip_ref"][idx],
-            "clip_dist": self.data["clip_dist"][idx],
-
-            "siglip_ref": self.data["siglip_ref"][idx],
-            "siglip_dist": self.data["siglip_dist"][idx],
-
-            "dino_ref": self.data["dino_ref"][idx],
-            "dino_dist": self.data["dino_dist"][idx],
-
-            "mos": self.data["mos"][idx]
-        }
+        return {key: values[idx] for key, values in self.data.items()}
