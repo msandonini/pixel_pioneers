@@ -34,6 +34,6 @@ def extract_embeddings(emb_out: str | Path):
 
 
 def pil_collate(batch):
-    refs, dists, mos = zip(*batch)
+    refs, dists, mos, ref_paths, dist_paths = zip(*batch)
     mos = torch.tensor(mos, dtype=torch.float32)
-    return list(refs), list(dists), mos
+    return list(refs), list(dists), mos, list(ref_paths), list(dist_paths)

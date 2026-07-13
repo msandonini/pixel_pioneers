@@ -72,4 +72,4 @@ class TID2013Dataset(Dataset):
             ref = self.transform(ref)
             dist = self.transform(dist)
 
-        return ref, dist, (mos - self.min_mos) / (self.max_mos - self.min_mos)
+        return ref, dist, (mos - self.min_mos) / (self.max_mos - self.min_mos), ref_path, dist_path

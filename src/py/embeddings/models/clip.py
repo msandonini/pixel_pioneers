@@ -62,11 +62,13 @@ def extract_clip_embeddings(conf):
     embeddings = {
         "ref": [],
         "dist": [],
-        "mos": []
+        "mos": [],
+        "ref_path": [],
+        "dist_path": [],
     }
 
     n = 0
-    for ref, dist, mos in loader:
+    for ref, dist, mos, ref_path, dist_path in loader:
         print(f"[CLIP] loop n={n}")
 
         print(f" -> ref")
@@ -76,6 +78,8 @@ def extract_clip_embeddings(conf):
         embeddings["dist"].append(get_model_embeddings(clip_processor, clip_model, dist, device).cpu())
 
         embeddings["mos"].append(mos)
+        embeddings["ref_path"].append(ref_path)
+        embeddings["dist_path"].append(dist_path)
 
         n += 1
 
