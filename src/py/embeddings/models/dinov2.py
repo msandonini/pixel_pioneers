@@ -84,6 +84,8 @@ def extract_dinov2_embeddings(conf):
 
     print("[DINOv2] save embeddings")
     for key in embeddings:
+        if key in ["ref_path", "dist_path"]:
+            continue
         embeddings[key] = torch.cat(
             embeddings[key],
             dim = 0

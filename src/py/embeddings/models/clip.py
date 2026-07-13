@@ -85,6 +85,8 @@ def extract_clip_embeddings(conf):
 
     print("[CLIP] save embeddings")
     for key in embeddings:
+        if key in ["ref_path", "dist_path"]:
+            continue
         embeddings[key] = torch.cat(
             embeddings[key],
             dim = 0
