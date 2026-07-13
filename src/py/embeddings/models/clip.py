@@ -78,8 +78,8 @@ def extract_clip_embeddings(conf):
         embeddings["dist"].append(get_model_embeddings(clip_processor, clip_model, dist, device).cpu())
 
         embeddings["mos"].append(mos)
-        embeddings["ref_path"].append(ref_path)
-        embeddings["dist_path"].append(dist_path)
+        embeddings["ref_path"].extend(ref_path)
+        embeddings["dist_path"].extend(dist_path)
 
         n += 1
 
