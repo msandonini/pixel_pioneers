@@ -88,6 +88,8 @@ def train(conf):
     )
 
     dt = f"datetime.now()".replace(":", ".")
+    checkpoint_dir = f"checkpoints/{dt}"
+    Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
 
     print("[train] train loop")
 

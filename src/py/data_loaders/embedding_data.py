@@ -19,7 +19,7 @@ class EmbeddingDataset(Dataset):
         raw = {}
         for f in files:
             model_name = f.stem.lower()
-            raw[model_name] = torch.load(f)
+            raw[model_name] = torch.load(f, weights_only=False)
 
         # Use first model as canonical sample order
         canon_name = next(iter(raw))
