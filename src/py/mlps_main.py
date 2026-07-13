@@ -151,10 +151,6 @@ def main():
     if "random_seed" in conf:
         random.seed(conf["random_seed"])
 
-    extract_clip_embeddings(conf)
-    extract_siglip2_embeddings(conf)
-    extract_dinov2_embeddings(conf)
-
     train(conf)
 
 
