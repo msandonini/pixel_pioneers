@@ -148,7 +148,7 @@ def train(conf):
             "loss": epoch_loss,
         }
 
-        torch.save(checkpoint, f"checkpoints/{dt}/model_{epoch}_loss_{loss_fmt}.pt")
+        torch.save(checkpoint, f"{checkpoint_dir}/model_{epoch}_loss_{loss_fmt}.pt")
 
 
 def main():
