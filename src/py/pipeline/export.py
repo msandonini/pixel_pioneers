@@ -17,6 +17,7 @@ def export_predictions(
     })
 
     filepath = Path(filepath)
+    filepath = Path(str(filepath).replace(":", "-"))
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
     write_header = not filepath.exists()
