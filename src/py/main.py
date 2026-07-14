@@ -139,8 +139,8 @@ def main():
         plot_corr_name = f"{name}_corr.png"
         results = compute_metrics(output["distances"], output["real_mos"])
 
-        print(f"[pipeline] {name} - PLCC: {results['PLCC']}, SROCC: {results['SROCC']}")
-
+        print(f"[pipeline] {name} - SROCC: {results['SROCC']:.4f}, PLCC: {results['PLCC']:.4f}, KROCC: {results['KROCC']:.4f}")
+        
         export_predictions(
             filepath=f"{out_path}/{csv_name}",
             model_name=name,
