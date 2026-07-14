@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
 #SBATCH --time=04:00:00
-#SBATCH --output=/work/cvcs2026/pixel_pioneers/output/proj_out_%j.out
+#SBATCH --output=/work/cvcs2026/pixel_pioneers/out/jobs/%j.out
 #SBATCH --account=cvcs2026
 
 PROJ_DIR="/work/cvcs2026/pixel_pioneers"
