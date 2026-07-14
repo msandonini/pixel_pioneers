@@ -21,9 +21,14 @@ class EmbeddingDataset(Dataset):
             model_name = f.stem.lower()
             raw[model_name] = torch.load(f, weights_only=False)
 
+        self.model_names = list(raw.keys())
+
         # Use first model as canonical sample order
         canon_name = next(iter(raw))
         canon_keys = list(zip(raw[canon_name]["ref_path"], raw[canon_name]["dist_path"]))
+
+        self.ref_paths = list(raw[canon_name]["ref_path"])
+        self.dist_paths = list(raw[canon_name]["dist_path"])
 
         self.data = {
             "mos": raw[canon_name]["mos"],
@@ -52,7 +57,7 @@ class EmbeddingDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.data)
+        return len(self.data["mos"])
 
     def __getitem__(self, idx):
         return {key: values[idx] for key, values in self.data.items()}
