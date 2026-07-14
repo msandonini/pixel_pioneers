@@ -141,7 +141,7 @@ def train(
 
     model.load_state_dict(best_state)
     if model_out is not None:
-        model_out = (Path(model_out) / f"{datetime.now()}".replace(":", "."))
+        model_out = (Path(model_out) / "metric" / f"{datetime.now()}".replace(":", "."))
         model_out.mkdir(parents=True)
         torch.save(best_state, model_out / "model.pt")
     return evaluate(model, test_loader, device)
@@ -169,7 +169,7 @@ def main():
     results = {}
     for model_name in dataset.model_names:
         print(f"[train] training on {model_name} embeddings")
-        results[model_name] = train(model_name, dataset, train_idx, val_idx, test_idx, device)
+        results[model_name] = train(model_name, dataset, train_idx, val_idx, test_idx, device, model_out=conf["weights_out"] if "weights_out" in conf else None)
 
     print(f"[train] comparison")
     for name, m in results.items():
