@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import pearsonr, spearmanr, kendalltau
 
 
 def plcc(predictions, targets):
@@ -17,9 +17,17 @@ def srocc(predictions, targets):
     score, _ = spearmanr(predictions, targets)
     return score
 
+def krocc(predictions, targets):
+    predictions = np.asarray(predictions)
+    targets = np.asarray(targets)
+
+    score, _ = kendalltau(predictions, targets)
+    return score
+
 
 def compute_metrics(predictions, targets):
     return {
         "PLCC": plcc(predictions, targets),
         "SROCC": srocc(predictions, targets),
+        "KROCC": krocc(predictions, targets)
     }
