@@ -134,8 +134,8 @@ def train(
 
         if (epoch + 1) % 10 == 0 or epoch == 0:
             print(
-                f"[{model_name}] epoch {epoch + 1}"
-                f"train_loss = {total_loss / len(train_idx):.4f}"
+                f"[{model_name}] epoch {epoch + 1} - "
+                f"train_loss = {total_loss / len(train_idx):.4f} - "
                 f"val_srocc = {val_metrics['srocc']:.4f}"
             )
 
