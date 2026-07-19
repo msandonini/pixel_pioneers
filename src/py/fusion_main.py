@@ -251,7 +251,7 @@ def main():
         history.append(row)
 
         print(
-            f"[train] epoch {epoch}"
+            f"[train] epoch {epoch} "
             f"train_loss={train_loss:.5f} | "
             f"val_loss={val_metrics['loss']:.5f} | "
             f"PLCC={val_metrics['plcc']:.4f} | "
