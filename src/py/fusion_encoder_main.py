@@ -16,7 +16,8 @@ from pathlib import Path
 
 from utils.utils import iqa_loss
 
-MOS_RANGE = (0.0, 9.0)  # TID2013 scale
+# MOS_RANGE = (0.0, 9.0)  # TID2013 scale
+MOS_RANGE = None
 VAL_FRAC = 0.16
 TEST_FRAC = 0.16
 EPOCHS = 50
@@ -72,6 +73,22 @@ def evaluate(
 
     preds = np.concatenate(preds)
     targets = np.concatenate(targets)
+
+    print(
+        "pred:",
+        preds.min(),
+        preds.max(),
+        preds.mean(),
+        preds.std(),
+    )
+
+    print(
+        "target:",
+        targets.min(),
+        targets.max(),
+        targets.mean(),
+        targets.std(),
+    )
 
     return {
         "loss": float(np.mean(losses)),
