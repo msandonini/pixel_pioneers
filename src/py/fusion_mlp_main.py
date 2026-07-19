@@ -8,7 +8,7 @@ from scipy.stats import pearsonr, spearmanr, kendalltau
 from torch.utils.data import DataLoader, random_split
 
 from data_loaders.embedding_data import EmbeddingDataset
-from fusion_mlp.mlp import FusionMLP
+from fusion.mlp import FusionMLP
 from metric_mlp.mlp import MetricMLP
 from pipeline import config
 from pathlib import Path
