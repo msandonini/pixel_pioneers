@@ -282,7 +282,6 @@ def main():
     torch.save(model_save_dict, model_save_path)
     torch.save(model_save_dict, model_save_path_latest)
 
-    fusion_mlp.load_state_dict(best_state)
     test_metrics = evaluate(
         fusion_mlp=fusion_mlp,
         metric_mlp=metric_mlp,
