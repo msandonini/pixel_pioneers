@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from data_loaders.embedding_data import EmbeddingDataset
 from metric_mlp.mlp import MetricMLP
 from pipeline import config
-from utils.utils import split_by_ref
+from utils.utils import split_by_ref, iqa_loss
 
 MOS_RANGE = (0.0, 9.0)  # TID2013 scale
 VAL_FRAC = 0.16
@@ -33,18 +33,6 @@ class SingleEncoderView(Dataset):
     def __getitem__(self, i: int):
         idx = self.indices[i]
         return self.dist[idx].float(), self.ref[idx].float(), self.mos[idx].float()
-
-
-def iqa_loss(pred: torch.Tensor, mos: torch.Tensor, rank_weight: float = 0.3) -> torch.Tensor:
-    # MSE + pairwise ranking
-
-    mse = F.mse_loss(pred, mos)
-
-    diff_pred = pred.unsqueeze(1) - pred.unsqueeze(0)
-    diff_mos = mos.unsqueeze(1) - mos.unsqueeze(0)
-    rank_loss = torch.relu(-torch.sign(diff_mos) * diff_pred).mean()
-
-    return mse + rank_weight * rank_loss
 
 
 @torch.no_grad

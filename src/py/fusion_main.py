@@ -13,6 +13,8 @@ from metric_mlp.mlp import MetricMLP
 from pipeline import config
 from pathlib import Path
 
+from utils.utils import iqa_loss
+
 MOS_RANGE = (0.0, 9.0)  # TID2013 scale
 VAL_FRAC = 0.16
 TEST_FRAC = 0.16
@@ -87,7 +89,7 @@ def train_one_epoch(
     device: torch.device,
 ) -> float:
     fusion_mlp.train()
-    metric_mlp.eval()   # frozen
+    metric_mlp.train()   # frozen
 
     running_loss = 0.0
 
@@ -108,7 +110,7 @@ def train_one_epoch(
 
         pred_mos = metric_mlp(fused_ref, fused_dist)
 
-        loss = F.mse_loss(pred_mos, mos)
+        loss = iqa_loss(pred_mos, mos)
 
         loss.backward()
         optimizer.step()
@@ -183,27 +185,15 @@ def main():
     metric_mlp = MetricMLP(
         embed_dim=FUSION_OUT_DIM,
         hidden_dim=512,
+        dropout=0.2,
         normalize_embeddings=True,
         output_range=MOS_RANGE
     ).to(device)
 
-    print("[train] load metric weights")
-
-    if not "weights_out" in conf:
-        print("[train] weights position not specified")
-        return
-
-    metric_mlp.load_state_dict(torch.load(
-        Path(conf["weights_out"]) / "metric" / "2026-07-14 15.55.07.836385" / "model.pt"
-    ))
-
-    metric_mlp.eval()
-
-    for p in metric_mlp.parameters():
-        p.requires_grad = False
 
     optimizer = torch.optim.AdamW(
-        fusion_mlp.parameters(),
+        list(fusion_mlp.parameters()) +
+        list(metric_mlp.parameters()),
         lr = LR,
         weight_decay=1e-4
     )
@@ -214,11 +204,21 @@ def main():
         patience=5
     )
 
+    if not "weights_out" in conf:
+        print("[train] weights position not specified")
+        return
+
+    dt = f"{datetime.now()}".replace(":", ".")
+
+    model_save_path = Path(conf["weights_out"]) / "fusion" / dt / "model.pt"
+    model_save_path_latest = Path(conf["weights_out"]) / "fusion" / "model_latest.pt"
+
     best_srocc = -float("inf")
-    out_path = Path(conf["weights_out"]) / "fusion" / f"{datetime.now()}".replace(":", ".") / "model.pt"
     patience_count = 0
     history = []
     best_state = {}
+
+    print("[train] train loop")
 
     for epoch in range(EPOCHS):
         train_loss = train_one_epoch(
@@ -262,8 +262,6 @@ def main():
         if val_metrics["srocc"] > best_srocc:
             best_srocc = val_metrics["srocc"]
             patience_count = 0
-
-            best_state = fusion_mlp.state_dict()
         else:
             patience_count += 1
 
@@ -271,8 +269,18 @@ def main():
             print("[train] early stopping")
             break
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(best_state, out_path)
+    model_save_path.parent.mkdir(parents=True, exist_ok=True)
+    model_save_dict = {
+        "fusion_state_dict": fusion_mlp.state_dict(),
+        "metric_state_dict": metric_mlp.state_dict(),
+        "model_names": model_names,
+        "input_dims": input_dims,
+        "fusion_out_dim": FUSION_OUT_DIM,
+        "epoch": epoch,
+        "best_srocc": best_srocc,
+    }
+    torch.save(model_save_dict, model_save_path)
+    torch.save(model_save_dict, model_save_path_latest)
 
     fusion_mlp.load_state_dict(best_state)
     test_metrics = evaluate(
