@@ -182,7 +182,7 @@ def main():
 
     metric_mlp = MetricMLP(
         embed_dim=FUSION_OUT_DIM,
-        hidden_dim=3072,
+        hidden_dim=512,
         normalize_embeddings=True,
         output_range=MOS_RANGE
     ).to(device)
