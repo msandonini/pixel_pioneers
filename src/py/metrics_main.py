@@ -8,9 +8,9 @@ from scipy.stats import spearmanr, pearsonr, kendalltau
 from torch.utils.data import DataLoader, Dataset
 
 from data_loaders.embedding_data import EmbeddingDataset
-from fusion_mlp.mlp import FusionMLP
 from metric_mlp.mlp import MetricMLP
 from pipeline import config
+from utils.utils import split_by_ref
 
 MOS_RANGE = (0.0, 9.0)  # TID2013 scale
 VAL_FRAC = 0.16
@@ -33,29 +33,6 @@ class SingleEncoderView(Dataset):
     def __getitem__(self, i: int):
         idx = self.indices[i]
         return self.dist[idx].float(), self.ref[idx].float(), self.mos[idx].float()
-
-
-def split_by_ref(ref_paths, val_frac: float = VAL_FRAC, test_frac: float = TEST_FRAC, seed: int = 42):
-    unique_refs = sorted(set(ref_paths), key=str)
-    random.shuffle(unique_refs)
-
-    n = len(unique_refs)
-    n_test = max(1, round(n * test_frac))
-    n_val = max(1, round(n * val_frac))
-
-    test_refs = set(unique_refs[:n_test])
-    val_refs = set(unique_refs[n_test:n_test + n_val])
-
-    train_idx, val_idx, test_idx = [], [], []
-    for i, ref in enumerate(ref_paths):
-        if ref in test_refs:
-            test_idx.append(i)
-        elif ref in val_refs:
-            val_idx.append(i)
-        else:
-            train_idx.append(i)
-
-    return train_idx, val_idx, test_idx
 
 
 def iqa_loss(pred: torch.Tensor, mos: torch.Tensor, rank_weight: float = 0.3) -> torch.Tensor:
@@ -131,13 +108,15 @@ def train(
         if val_metrics["srocc"] > best_val_srocc:
             best_val_srocc = val_metrics["srocc"]
             best_state = {k : v.clone() for k, v in model.state_dict().items()}
+        elif val_metrics["srocc"] < best_val_srocc:
+            # Early exit
+            break
 
-        if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(
-                f"[{model_name}] epoch {epoch + 1} - "
-                f"train_loss = {total_loss / len(train_idx):.4f} - "
-                f"val_srocc = {val_metrics['srocc']:.4f}"
-            )
+        print(
+            f"[{model_name}] epoch {epoch + 1} - "
+            f"train_loss = {total_loss / len(train_idx):.4f} - "
+            f"val_srocc = {val_metrics['srocc']:.4f}"
+        )
 
     model.load_state_dict(best_state)
     if model_out is not None:
@@ -164,7 +143,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    train_idx, val_idx, test_idx = split_by_ref(dataset.ref_paths)
+    train_idx, val_idx, test_idx = split_by_ref(dataset.ref_paths, val_frac=VAL_FRAC, test_frac=TEST_FRAC)
 
     results = {}
     for model_name in dataset.model_names:
