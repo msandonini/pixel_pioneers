@@ -216,7 +216,9 @@ def main():
     best_srocc = -float("inf")
     patience_count = 0
     history = []
-    best_state = {}
+    best_state_fusion = {}
+    best_state_metric = {}
+    best_epoch = 0
 
     print("[train] train loop")
 
@@ -261,26 +263,32 @@ def main():
 
         if val_metrics["srocc"] > best_srocc:
             best_srocc = val_metrics["srocc"]
+            best_state_fusion = fusion_mlp.state_dict()
+            best_state_metric = metric_mlp.state_dict()
+            best_epoch = epoch
             patience_count = 0
         else:
             patience_count += 1
 
-        if patience_count >= sched.patience:
+        if patience_count >= sched.patience * 2:
             print("[train] early stopping")
             break
 
     model_save_path.parent.mkdir(parents=True, exist_ok=True)
     model_save_dict = {
-        "fusion_state_dict": fusion_mlp.state_dict(),
-        "metric_state_dict": metric_mlp.state_dict(),
+        "fusion_state_dict": best_state_fusion,
+        "metric_state_dict": best_state_metric,
         "model_names": model_names,
         "input_dims": input_dims,
         "fusion_out_dim": FUSION_OUT_DIM,
-        "epoch": epoch,
+        "epoch": best_epoch,
         "best_srocc": best_srocc,
     }
     torch.save(model_save_dict, model_save_path)
     torch.save(model_save_dict, model_save_path_latest)
+
+    fusion_mlp.load_state_dict(best_state_fusion)
+    metric_mlp.load_state_dict(best_state_metric)
 
     test_metrics = evaluate(
         fusion_mlp=fusion_mlp,
