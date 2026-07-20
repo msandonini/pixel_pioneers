@@ -18,7 +18,7 @@ from utils.utils import iqa_loss
 MOS_RANGE = (0.0, 9.0)  # TID2013 scale
 VAL_FRAC = 0.16
 TEST_FRAC = 0.16
-EPOCHS = 50
+EPOCHS = 100
 BATCH_SIZE = 64
 LR = 1e-3
 FUSION_OUT_DIM = 128
