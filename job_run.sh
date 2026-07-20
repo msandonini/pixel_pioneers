@@ -22,4 +22,4 @@ source "$VENV_DIR/bin/activate"
 # pip install --upgrade pip
 # pip install -r "$PROJ_DIR/requirements.txt"
 
-python "$PROJ_DIR/src/py/fusion_encoder_main.py"
+python "$PROJ_DIR/src/py/fusion_mlp_main.py"
