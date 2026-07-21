@@ -18,6 +18,48 @@ In order to do so, inside of `embeddings.models`, we created a main for each fou
 The datasets can be downloaded, extracted and cached via the functions inside of `pipeline.data_cache`.
 The provided mains inside of `embeddings.models` should automatically take care of it by calling the functions when run.
 
+### Zero-Shot models
+The evaluation pipeline for this setting can be found in the `multiple_models_main.py` file.
+The PipelineVisionEncoder and its configuration can be found inside  `pipeline.model`.
+
+The dataset is loaded via TID2013Dataset, modeled inside  `data_loaders.tid2013`, with
+include_reference=True so that each sample provides both the distorted image and its
+corresponding reference image.
+
+Unlike the Metric MLP and Fusion MLP, this setting requires no training: no parameters are
+learned, and each encoder is evaluated purely on its frozen, pre-trained embeddings.
+
+Three pre-trained vision encoders are evaluated:
+
+SigLIP2 (vit_base_patch16_siglip_224)
+CLIP (vit_base_patch32_clip_224.openai)
+DINOv2 (dinov2_vitb14)
+
+Since a higher distance indicates lower similarity between the distorted and reference
+embeddings (i.e. a more severe distortion), a negative correlation with the MOS is expected.
+
+The pipeline evaluates each encoder across three distortion-level scenarios (defined in
+DISTORTION_SCENARIOS), in order to assess whether correlation with human MOS depends on
+distortion severity:
+
+all_levels: the full dataset, including all 5 distortion levels.
+low_distortion: only levels 1 and 2 (mild, subtle distortions).
+high_distortion: only levels 4 and 5 (severe, clearly visible distortions).
+
+For each scenario, the following correlation metrics are computed via
+ `pipeline.metrics.compute_metrics`:
+
+PLCC (Pearson Linear Correlation Coefficient)
+SROCC (Spearman Rank Correlation Coefficient)
+KROCC (Kendall Rank Correlation Coefficient)
+
+Per-image predictions, image names, and ground-truth MOS values are exported to CSV via
+ `pipeline.export.export_predictions`, saved under out/fr_<timestamp>/<scenario_name>/<model_name>.csv.
+
+After evaluating every encoder and scenario, the pipeline prints a summary table comparing
+zero-shot performance across models and distortion-level scenarios.
+
+
 ### Metric MLP
 
 The training pipeline for this model can be found in the `metrics_main.py` file
