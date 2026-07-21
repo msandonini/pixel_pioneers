@@ -182,7 +182,7 @@ def main():
 
     print("[train] load embeddings")
 
-    dataset = EmbeddingDataset(conf["embeddings"]["out"], excluded_models=["dinov2"])
+    dataset = EmbeddingDataset(conf["embeddings"]["out"], excluded_models=["siglip2"])
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
