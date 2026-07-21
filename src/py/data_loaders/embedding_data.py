@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 
 
 class EmbeddingDataset(Dataset):
-    def __init__(self, path: str | Path):
+    def __init__(self, path: str | Path, excluded_models: list[str] = []):
         path = Path(path)
 
         self.data = {}
@@ -18,6 +18,8 @@ class EmbeddingDataset(Dataset):
 
         raw = {}
         for f in files:
+            if f.stem in excluded_models or f.stem.lower() in excluded_models:
+                continue
             model_name = f.stem.lower()
             raw[model_name] = torch.load(f, weights_only=False)
 
