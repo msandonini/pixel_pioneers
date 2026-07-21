@@ -92,6 +92,11 @@ def train(
 
             total_loss += loss.item() * pred_emb.size(0)
 
+        print(
+            f"[{model_name}] epoch {epoch + 1} - "
+            f"train_loss = {total_loss / len(train_idx):.4f} - "
+            f"val_srocc = {val_metrics['srocc']:.4f}"
+        )
         val_metrics = evaluate(model, val_loader, device)
         if val_metrics["srocc"] > best_val_srocc:
             best_val_srocc = val_metrics["srocc"]
@@ -100,11 +105,6 @@ def train(
             # Early exit
             break
 
-        print(
-            f"[{model_name}] epoch {epoch + 1} - "
-            f"train_loss = {total_loss / len(train_idx):.4f} - "
-            f"val_srocc = {val_metrics['srocc']:.4f}"
-        )
 
     model.load_state_dict(best_state)
     if model_out is not None:
