@@ -24,6 +24,56 @@ LR = 1e-3
 FUSION_OUT_DIM = 128
 
 
+from collections import defaultdict
+import random
+
+from torch.utils.data import Subset
+
+
+def group_split_by_ref(
+    dataset,
+    val_frac=0.16,
+    test_frac=0.16,
+    seed=42,
+):
+
+    # Group sample indices by reference image
+    ref_to_indices = defaultdict(list)
+    for idx, ref in enumerate(dataset.ref_paths):
+        ref_to_indices[ref].append(idx)
+
+    # Shuffle unique references
+    refs = list(ref_to_indices.keys())
+    rng = random.Random(seed)
+    rng.shuffle(refs)
+
+    n_refs = len(refs)
+
+    n_val = int(val_frac * n_refs)
+    n_test = int(test_frac * n_refs)
+    n_train = n_refs - n_val - n_test
+
+    train_refs = refs[:n_train]
+    val_refs = refs[n_train:n_train + n_val]
+    test_refs = refs[n_train + n_val:]
+
+    def refs_to_indices(ref_list):
+        indices = []
+        for ref in ref_list:
+            indices.extend(ref_to_indices[ref])
+        return sorted(indices)
+
+    train_indices = refs_to_indices(train_refs)
+    val_indices = refs_to_indices(val_refs)
+    test_indices = refs_to_indices(test_refs)
+
+    return (
+        Subset(dataset, train_indices),
+        Subset(dataset, val_indices),
+        Subset(dataset, test_indices),
+    )
+
+
 def get_model_names_and_dims(dataset) -> tuple[list[str], list[int]]:
     model_names = sorted(
         {k.rsplit("_", 1)[0] for k in dataset.data.keys() if k.endswith("_ref")}
@@ -138,17 +188,25 @@ def main():
     print(f"Using device: {device}")
 
     model_names, input_dims = get_model_names_and_dims(dataset)
-    n_total = len(dataset)
-    n_test = int(n_total * TEST_FRAC)
-    n_val = int(n_total * VAL_FRAC)
-    n_train = n_total - n_val - n_test
+    # n_total = len(dataset)
+    # n_test = int(n_total * TEST_FRAC)
+    # n_val = int(n_total * VAL_FRAC)
+    # n_train = n_total - n_val - n_test
 
     print("[train] create dataloaders")
 
-    train_set, val_set, test_set = random_split(
+
+    # train_set, val_set, test_set = random_split(
+    #     dataset,
+    #     [n_train, n_val, n_test],
+    #     generator=torch.Generator().manual_seed(conf["random_seed"]),
+    # )
+
+    train_set, val_set, test_set = group_split_by_ref(
         dataset,
-        [n_train, n_val, n_test],
-        generator=torch.Generator().manual_seed(conf["random_seed"]),
+        val_frac=VAL_FRAC,
+        test_frac=TEST_FRAC,
+        seed=conf["random_seed"]
     )
 
     train_loader = DataLoader(
