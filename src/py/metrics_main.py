@@ -70,10 +70,17 @@ def train(
     embed_dim = dataset.data[f"{model_name}_ref"].shape[-1]
     model = MetricMLP(embed_dim=embed_dim, output_range=MOS_RANGE).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-4)
+    sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode='max',
+        factor=0.5,
+        patience=5
+    )
 
     best_val_srocc = -1.0
     best_state = None
 
+    patience_count = 0
     for epoch in range(EPOCHS):
         model.train()
         total_loss = 0.0
@@ -94,6 +101,8 @@ def train(
 
         val_metrics = evaluate(model, val_loader, device)
 
+        sched.step(val_metrics["srocc"])
+
         print(
             f"[{model_name}] epoch {epoch + 1} - "
             f"train_loss = {total_loss / len(train_idx):.4f} - "
@@ -102,9 +111,11 @@ def train(
         if val_metrics["srocc"] > best_val_srocc:
             best_val_srocc = val_metrics["srocc"]
             best_state = {k : v.clone() for k, v in model.state_dict().items()}
-        elif val_metrics["srocc"] < best_val_srocc:
-            # Early exit
+            patience_count = 0
+        elif patience_count > sched.patience * 2:
             break
+        else:
+            patience_count += 1
 
 
     model.load_state_dict(best_state)
