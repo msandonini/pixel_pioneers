@@ -92,12 +92,13 @@ def train(
 
             total_loss += loss.item() * pred_emb.size(0)
 
+        val_metrics = evaluate(model, val_loader, device)
+
         print(
             f"[{model_name}] epoch {epoch + 1} - "
             f"train_loss = {total_loss / len(train_idx):.4f} - "
             f"val_srocc = {val_metrics['srocc']:.4f}"
         )
-        val_metrics = evaluate(model, val_loader, device)
         if val_metrics["srocc"] > best_val_srocc:
             best_val_srocc = val_metrics["srocc"]
             best_state = {k : v.clone() for k, v in model.state_dict().items()}
